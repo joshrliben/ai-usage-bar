@@ -280,6 +280,7 @@ struct PopoverView: View {
         }
         .padding(14)
         .frame(width: 260)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -298,7 +299,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.button?.target = self
         item.button?.action = #selector(toggle)
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: PopoverView(model: model))
+        // Track SwiftUI's size so the popover grows when rows appear after a refresh; with a fixed
+        // size the extra height overflows and the top of the content gets clipped.
+        let hosting = NSHostingController(rootView: PopoverView(model: model))
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
         model.onChange = { [weak self] in self?.updateTitle() }
         updateTitle()
         model.refresh()
